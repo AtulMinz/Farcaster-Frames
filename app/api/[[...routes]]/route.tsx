@@ -38,17 +38,59 @@ app.frame("/foo", (c) => {
     return c.res({
       action: "/pill/a",
       image: "http://localhost:3000/api/pill/a",
+      imageAspectRatio: "1:1",
       intents: [
         <TextInput placeholder="text" />,
         <Button value="generate">Generate</Button>,
       ],
     });
   }
-
   return c.res({
     action: "/pill/b",
     image: "http://localhost:3000/api/pill/b",
-    intents: [<TextInput placeholder="text" />, <Button>Generate</Button>],
+    imageAspectRatio: "1:1",
+    intents: [
+      <TextInput placeholder="text" />,
+      <Button value="generate">Generate</Button>,
+    ],
+  });
+});
+
+app.frame("/pill/:id", (c) => {
+  const id = c.req.param("id");
+
+  const { frameData, verified } = c;
+  const { inputText = "" } = frameData || {};
+
+  if (verified) {
+    const newSearchParams = new URLSearchParams({
+      text: inputText,
+    });
+
+    if (id === "a") {
+      return c.res({
+        action: "/",
+        image: `http://localhost:3000/api/pill/a?${newSearchParams}`,
+        imageAspectRatio: "1:1",
+        intents: [<Button.Reset>Reset 🔄</Button.Reset>],
+      });
+    }
+    return c.res({
+      action: "/",
+      image: `http://localhost:3000/api/pill/b?${newSearchParams}`,
+      imageAspectRatio: "1:1",
+      intents: [<Button>Start Over 🔄</Button>],
+    });
+  }
+
+  return c.res({
+    action: "/",
+    image: (
+      <div style={{ color: "white", display: "flex", fontSize: 60 }}>
+        Invalid User
+      </div>
+    ),
+    intents: [<Button>Try Again 🔄</Button>],
   });
 });
 
