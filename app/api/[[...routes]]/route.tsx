@@ -12,6 +12,7 @@ const app = new Frog({
   basePath: "/api",
   // Supply a Hub to enable frame verification.
   // hub: neynar({ apiKey: 'NEYNAR_FROG_FM' })
+  // hub: pinata(); from "frog/hub" when pushing in production.
   title: "Frog Frame",
 });
 
@@ -32,6 +33,7 @@ app.frame("/", (c) => {
 });
 
 app.frame("/foo", (c) => {
+  // use verified property in context(c) to check before passing.
   const { buttonValue } = c;
 
   if (buttonValue === "A") {
@@ -59,38 +61,26 @@ app.frame("/foo", (c) => {
 app.frame("/pill/:id", (c) => {
   const id = c.req.param("id");
 
-  const { frameData, verified } = c;
+  const { frameData } = c;
   const { inputText = "" } = frameData || {};
 
-  if (verified) {
-    const newSearchParams = new URLSearchParams({
-      text: inputText,
-    });
+  const newSearchParams = new URLSearchParams({
+    text: inputText,
+  });
 
-    if (id === "a") {
-      return c.res({
-        action: "/",
-        image: `http://localhost:3000/api/pill/a?${newSearchParams}`,
-        imageAspectRatio: "1:1",
-        intents: [<Button.Reset>Reset 🔄</Button.Reset>],
-      });
-    }
+  if (id === "a") {
     return c.res({
       action: "/",
-      image: `http://localhost:3000/api/pill/b?${newSearchParams}`,
+      image: `http://localhost:3000/api/pill/a?${newSearchParams}`,
       imageAspectRatio: "1:1",
-      intents: [<Button>Start Over 🔄</Button>],
+      intents: [<Button.Reset>Reset 🔄</Button.Reset>],
     });
   }
-
   return c.res({
     action: "/",
-    image: (
-      <div style={{ color: "white", display: "flex", fontSize: 60 }}>
-        Invalid User
-      </div>
-    ),
-    intents: [<Button>Try Again 🔄</Button>],
+    image: `http://localhost:3000/api/pill/b?${newSearchParams}`,
+    imageAspectRatio: "1:1",
+    intents: [<Button>Start Over 🔄</Button>],
   });
 });
 
@@ -98,7 +88,6 @@ devtools(app, { serveStatic });
 
 export const GET = handle(app);
 export const POST = handle(app);
-
 // NOTE: That if you are using the devtools and enable Edge Runtime, you will need to copy the devtools
 // static assets to the public folder. You can do this by adding a script to your package.json:
 // ```json
